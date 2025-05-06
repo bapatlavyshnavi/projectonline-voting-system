@@ -1,0 +1,180 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct Voter {
+    int id;
+    char name[50];
+    int hasVoted;
+    struct Voter* next;
+} Voter;
+
+typedef struct Candidate {
+    int id;
+    char name[50];
+    int votes;
+    struct Candidate* next;
+} Candidate;
+
+Voter* voterHead = NULL;
+Candidate* candidateHead = NULL;
+int voterIdCounter = 1;
+int candidateIdCounter = 1;
+
+void addCandidate(const char* name) {
+    Candidate* newCandidate = (Candidate*)malloc(sizeof(Candidate));
+    newCandidate->id = candidateIdCounter++;
+    strcpy(newCandidate->name, name);
+    newCandidate->votes = 0;
+    newCandidate->next = candidateHead;
+    candidateHead = newCandidate;
+}
+
+void initializeCandidates() {
+    addCandidate("Alice");
+    addCandidate("Bob");
+    addCandidate("Charlie");
+    addCandidate("Diana");
+    addCandidate("Evan");
+}
+
+void registerVoter() {
+    Voter* newVoter = (Voter*)malloc(sizeof(Voter));
+    newVoter->id = voterIdCounter++;
+    printf("Enter voter name: ");
+    scanf("%s", newVoter->name);
+    newVoter->hasVoted = 0;
+    newVoter->next = voterHead;
+    voterHead = newVoter;
+    printf("Voter registered. ID: %d\n", newVoter->id);
+}
+
+Voter* findVoterById(int id) {
+    Voter* current = voterHead;
+    while (current != NULL) {
+        if (current->id == id)
+            return current;
+        current = current->next;
+    }
+    return NULL;
+}
+
+Candidate* findCandidateById(int id) {
+    Candidate* current = candidateHead;
+    while (current != NULL) {
+        if (current->id == id)
+            return current;
+        current = current->next;
+    }
+    return NULL;
+}
+
+void vote() {
+    int voterId;
+    printf("Enter your Voter ID: ");
+    scanf("%d", &voterId);
+    Voter* voter = findVoterById(voterId);
+    if (voter == NULL) {
+        printf("Voter not found.\n");
+        return;
+    }
+    if (voter->hasVoted) {
+        printf("You have already voted.\n");
+        return;
+    }
+
+    printf("Candidates:\n");
+    Candidate* current = candidateHead;
+    while (current != NULL) {
+        printf("%d. %s\n", current->id, current->name);
+        current = current->next;
+    }
+
+    int choice;
+    printf("Enter candidate ID to vote for: ");
+    scanf("%d", &choice);
+    Candidate* candidate = findCandidateById(choice);
+    if (candidate == NULL) {
+        printf("Invalid candidate ID.\n");
+        return;
+    }
+
+    candidate->votes++;
+    voter->hasVoted = 1;
+    printf("Vote cast successfully for %s.\n", candidate->name);
+}
+
+void displayResults() {
+    printf("\n--- Voting Results ---\n");
+    Candidate* current = candidateHead;
+    while (current != NULL) {
+        printf("%s - %d votes\n", current->name, current->votes);
+        current = current->next;
+    }
+}
+
+void viewVoterRecords() {
+    printf("\n--- Voter Records ---\n");
+    Voter* current = voterHead;
+    while (current != NULL) {
+        printf("ID: %d, Name: %s, Voted: %s\n", current->id, current->name, current->hasVoted ? "Yes" : "No");
+        current = current->next;
+    }
+}
+
+void freeMemory() {
+    Voter* vCurrent = voterHead;
+    while (vCurrent != NULL) {
+        Voter* temp = vCurrent;
+        vCurrent = vCurrent->next;
+        free(temp);
+    }
+
+    Candidate* cCurrent = candidateHead;
+    while (cCurrent != NULL) {
+        Candidate* temp = cCurrent;
+        cCurrent = cCurrent->next;
+        free(temp);
+    }
+}
+
+void printMenu() {
+    printf("\n=== Online Voting System ===\n");
+    printf("1. Register Voter\n");
+    printf("2. Cast Vote\n");
+    printf("3. View Results\n");
+    printf("4. View Voter Records\n");
+    printf("5. Exit\n");
+    printf("Choose an option: ");
+}
+
+int main() {
+    initializeCandidates();
+    int choice;
+
+    while (1) {
+        printMenu();
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                registerVoter();
+                break;
+            case 2:
+                vote();
+                break;
+            case 3:
+                displayResults();
+                break;
+            case 4:
+                viewVoterRecords();
+                break;
+            case 5:
+                freeMemory();
+                printf("Exiting the system.\n");
+                return 0;
+            default:
+                printf("Invalid choice. Try again.\n");
+        }
+    }
+    return 0;
+}
